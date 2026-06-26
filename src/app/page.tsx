@@ -1,37 +1,51 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { MagnifyingGlass, DownloadSimple, ShieldCheck, CheckCircle, Warning, GithubLogo, ArrowSquareOut, Tag as TagIcon, Star } from '@phosphor-icons/react';
-import { Plugin } from '@/lib/types';
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import {
+  MagnifyingGlass,
+  DownloadSimple,
+  ShieldCheck,
+  CheckCircle,
+  Warning,
+  GithubLogo,
+  ArrowSquareOut,
+  Tag as TagIcon,
+  Star,
+} from "@phosphor-icons/react";
+import { Plugin } from "@/lib/types";
 
 export default function Marketplace() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/plugins')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/plugins")
+      .then((res) => res.json())
+      .then((data) => {
         setPlugins(data);
         setLoading(false);
       })
-      .catch(err => {
-        console.error('Failed to fetch plugins:', err);
+      .catch((err) => {
+        console.error("Failed to fetch plugins:", err);
         setLoading(false);
       });
   }, []);
 
-  const filteredPlugins = plugins.filter(plugin => {
-    const matchesSearch = plugin.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         plugin.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredPlugins = plugins.filter((plugin) => {
+    const matchesSearch =
+      plugin.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      plugin.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTag = !selectedTag || plugin.tags.includes(selectedTag);
     return matchesSearch && matchesTag;
   });
 
-  const allTags = Array.from(new Set(plugins.flatMap(p => p.tags))).slice(0, 8);
+  const allTags = Array.from(new Set(plugins.flatMap((p) => p.tags))).slice(
+    0,
+    8,
+  );
 
   if (loading) {
     return (
@@ -51,11 +65,22 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Matcha" width={32} height={32} className="rounded-lg" />
-              <span className="font-semibold text-slate-900 text-lg">Matcha Marketplace</span>
+              <Image
+                src="/logo.png"
+                alt="Matcha"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+              <span className="font-semibold text-slate-900 text-lg">
+                Matcha Marketplace
+              </span>
             </div>
             <div className="flex items-center gap-4">
-              <a href="/submit" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              <a
+                href="/submit"
+                className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+              >
                 Submit Plugin
               </a>
               <a
@@ -78,9 +103,10 @@ export default function Marketplace() {
             Extend Matcha with Plugins
           </h1>
           <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Discover community-built plugins to enhance your email experience. From productivity tools to custom workflows.
+            Discover community-built plugins to enhance your email experience.
+            From productivity tools to custom workflows.
           </p>
-          
+
           {/* Search Bar */}
           <div className="max-w-xl mx-auto relative">
             <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -100,20 +126,20 @@ export default function Marketplace() {
                 onClick={() => setSelectedTag(null)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   !selectedTag
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? "bg-emerald-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
                 All
               </button>
-              {allTags.map(tag => (
+              {allTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                     selectedTag === tag
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
                   {tag}
@@ -129,11 +155,13 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto">
           {filteredPlugins.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-slate-500">No plugins found matching your search.</p>
+              <p className="text-slate-500">
+                No plugins found matching your search.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPlugins.map(plugin => (
+              {filteredPlugins.map((plugin) => (
                 <PluginCard key={plugin.id} plugin={plugin} />
               ))}
             </div>
@@ -145,14 +173,28 @@ export default function Marketplace() {
       <footer className="border-t border-slate-200 py-8 px-4 mt-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Matcha" width={24} height={24} className="rounded" />
-            <span className="text-sm text-slate-600">© 2024 Matcha Email Client</span>
+            <Image
+              src="/logo.png"
+              alt="Matcha"
+              width={24}
+              height={24}
+              className="rounded"
+            />
+            <span className="text-sm text-slate-600">© 2026 Floatpane</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-slate-600">
-            <a href="https://github.com/floatpane/matcha" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
+            <a
+              href="https://github.com/floatpane/matcha"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-900 transition-colors"
+            >
               GitHub
             </a>
-            <a href="/submit" className="hover:text-slate-900 transition-colors">
+            <a
+              href="/submit"
+              className="hover:text-slate-900 transition-colors"
+            >
               Submit Plugin
             </a>
           </div>
@@ -164,7 +206,7 @@ export default function Marketplace() {
 
 function PluginCard({ plugin }: { plugin: Plugin }) {
   const isVerified = plugin.author.is_verified && plugin.maintainer.is_verified;
-  const isTrusted = plugin.verification_status === 'clean';
+  const isTrusted = plugin.verification_status === "clean";
 
   return (
     <div className="group bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg hover:border-emerald-200 transition-all duration-200">
@@ -172,10 +214,16 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-slate-900 text-lg">{plugin.title}</h3>
-            {isVerified && <CheckCircle className="w-4 h-4 text-emerald-600" weight="fill" />}
+            <h3 className="font-semibold text-slate-900 text-lg">
+              {plugin.title}
+            </h3>
+            {isVerified && (
+              <CheckCircle className="w-4 h-4 text-emerald-600" weight="fill" />
+            )}
           </div>
-          <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{plugin.description}</p>
+          <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+            {plugin.description}
+          </p>
         </div>
       </div>
 
@@ -223,7 +271,7 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
         {/* Tags */}
         {plugin.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
-            {plugin.tags.slice(0, 3).map(tag => (
+            {plugin.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs"
@@ -238,7 +286,9 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
       {/* Actions */}
       <div className="flex gap-2">
         <button
-          onClick={() => window.location.href = `matcha:install:${plugin.name}`}
+          onClick={() =>
+            (window.location.href = `matcha:install:${plugin.name}`)
+          }
           className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium transition-colors text-sm flex items-center justify-center gap-2"
         >
           <DownloadSimple className="w-4 h-4" />
@@ -260,7 +310,9 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
         <div className="mt-3 pt-3 border-t border-amber-200">
           <p className="text-xs text-amber-700 flex items-start gap-1.5">
             <Warning className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-            <span>Unverified author. Confirmation required before install.</span>
+            <span>
+              Unverified author. Confirmation required before install.
+            </span>
           </p>
         </div>
       )}
