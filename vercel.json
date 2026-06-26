@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "env": {
+    "GITHUB_APP_ID": "@github-app-id",
+    "GITHUB_APP_PRIVATE_KEY": "@github-app-private-key",
+    "GITHUB_APP_INSTALLATION_ID": "@github-app-installation-id"
+  }
+}
