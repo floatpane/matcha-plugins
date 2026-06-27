@@ -1,0 +1,16 @@
+{
+  "name": "ai-rewrite",
+  "title": "Ai-rewrite",
+  "description": "",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "andrinoff",
+    "display_name": "Drew Smirnoff"
+  },
+  "repository_url": "https://github.com/andrinoff/ai-rewrite-plugin",
+  "source_branch": "main",
+  "source_sha": "7871b7c406d9560b25f29df022dd7c2a3b3b5a55",
+  "sha256": "1968270645bcdf5bb377cb8515c669c9a0f1bb86c61691b508da59abdde6433d",
+  "submitted_at": "2026-06-27T10:02:17.157Z",
+  "tags": []
+}
