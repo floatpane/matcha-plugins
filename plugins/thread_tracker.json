@@ -1,0 +1,20 @@
+{
+  "name": "thread_tracker",
+  "title": "Thread Tracker",
+  "description": "Tracks how many replies and forwards you receive per session.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "00210d6c8ae835146be11f11de212df59ce3ee17",
+  "sha256": "9f08a74c029727d2ca9da5e917cde9014d7eeb09259a9fdbb6942627fb6e7dcd",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "analytics"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "webhook_notify",
+  "title": "Webhook Notify",
+  "description": "Posts a JSON payload to a webhook URL when an email is received.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "9a081671efab13bd286734511f372dac4b2d3e1e",
+  "sha256": "7156fd91e711ac83f342db3e7578a3f6eb86a90768c86aa61a97d6b6147d19b3",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "integrations"
+  ]
+}

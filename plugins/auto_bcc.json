@@ -1,0 +1,20 @@
+{
+  "name": "auto_bcc",
+  "title": "Auto BCC",
+  "description": "Automatically adds a BCC address to every email you compose.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "d3bd441ffb7f7a9f6c4c8ad2bb4846aba2f27161",
+  "sha256": "21ecec0f74f0f3360bdbbf3f59c0a4c5a6bc2484f5aebf81caca4e6d0bbdca22",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}

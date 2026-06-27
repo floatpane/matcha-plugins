@@ -1,0 +1,20 @@
+{
+  "name": "ai_rewrite",
+  "title": "AI Rewrite",
+  "description": "Rewrites the email body using an AI model. Press ctrl+r in the composer to open the prompt overlay. Works with any OpenAI-compatible API.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "2a61ed23882b41a2603900e95e3ca181f59cc97a",
+  "sha256": "1968270645bcdf5bb377cb8515c669c9a0f1bb86c61691b508da59abdde6433d",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "AI"
+  ]
+}

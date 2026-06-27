@@ -1,0 +1,20 @@
+{
+  "name": "inbox_activity",
+  "title": "Inbox Activity",
+  "description": "Shows a live activity indicator in the inbox status bar with received, read, and sent counts.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "8a4781105675a123939f8601014fd5bcf240172b",
+  "sha256": "3c167f436aa3797a8d82c614fc53df1d172cf97485ed94fbe829656244a68ccb",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "UI"
+  ]
+}

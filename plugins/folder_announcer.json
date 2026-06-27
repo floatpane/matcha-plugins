@@ -1,0 +1,20 @@
+{
+  "name": "folder_announcer",
+  "title": "Folder Announcer",
+  "description": "Shows a brief notification when you switch folders.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "a935f70899ee9164197c2d9f8d4a5c3ed328b2c0",
+  "sha256": "8f4aea4f609ef6656fdf78788aaccc5193b67e2d866e713772181fe2f2d5d2f6",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "navigation"
+  ]
+}

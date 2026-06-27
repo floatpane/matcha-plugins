@@ -1,0 +1,20 @@
+{
+  "name": "folder_favorites",
+  "title": "Folder Favorites",
+  "description": "Tracks your most visited folders and logs the top 3 on shutdown.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "f54320bf1cd41202f142305abef81ba44397ebb7",
+  "sha256": "447a41ab4746a05c310259ba97a29728a083007988fffcda25e6e539f785bac4",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "navigation"
+  ]
+}

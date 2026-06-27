@@ -1,0 +1,20 @@
+{
+  "name": "vip_alerts",
+  "title": "VIP Alerts",
+  "description": "Shows prominent notifications for emails from important senders.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "c6e662aa3716236d1a8df06c20396851f268e9a3",
+  "sha256": "923923a2b39392566293215b27de0db2ddb80456fb81cfbf05e828faf915e91c",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "notifications"
+  ]
+}

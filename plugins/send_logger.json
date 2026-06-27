@@ -1,0 +1,20 @@
+{
+  "name": "send_logger",
+  "title": "Send Logger",
+  "description": "Logs every email you send for personal record-keeping.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "4bbe053121be492fa66a33edd26d92d9d23a68a2",
+  "sha256": "80b00780c3f101dcca0d19d8911cdf0798c90334c0cf2a2ae280ef4f52c6a29e",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "logging"
+  ]
+}

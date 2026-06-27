@@ -1,0 +1,20 @@
+{
+  "name": "self_email_warn",
+  "title": "Self Email Warn",
+  "description": "Notifies you when you receive an email you sent to yourself.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "eed999c5fead476c22b4a0989bd3b46128099b12",
+  "sha256": "fadd28ff1d7bd21a013f7bcc3dcffbe6d15d90645fead7a38d07c8576415df7d",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "notifications"
+  ]
+}

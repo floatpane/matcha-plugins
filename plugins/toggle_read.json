@@ -1,0 +1,20 @@
+{
+  "name": "toggle_read",
+  "title": "Toggle Read",
+  "description": "Press a configurable key (default: u) in the inbox or email view to toggle read/unread on the selected email.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "6a119c6ed1096611560e9b3e4b5aba1cf9f7afff",
+  "sha256": "4bb16e68b3f36e234785d6e10ff30d1681c61c74e312497b8b278e536e27c64d",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "keyboard"
+  ]
+}

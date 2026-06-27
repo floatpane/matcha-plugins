@@ -1,0 +1,21 @@
+{
+  "name": "weather_status",
+  "title": "Weather Status",
+  "description": "Fetches current weather and displays it in the inbox status bar.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "0f0f127857bed8e123d0df51d5d4ee6d17263dc0",
+  "sha256": "c0ddc0d6a4c934a0678f4a070e4507d826bffa6c50fedfecffcb00dc662b80d3",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "fun",
+    "UI",
+    "integrations"
+  ]
+}

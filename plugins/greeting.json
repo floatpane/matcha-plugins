@@ -1,0 +1,20 @@
+{
+  "name": "greeting",
+  "title": "Greeting",
+  "description": "Shows a random motivational greeting on startup.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "6c694ee7f00e6cbf0fcd29e8d5d6945c8a983e5f",
+  "sha256": "5469caec5c5e7e9e63d1b2143bf7076a318af8ac578ad4cc1851fb7d22b1cf53",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "fun"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "sender_frequency",
+  "title": "Sender Frequency",
+  "description": "Tracks how many emails each sender sends you and shows repeat senders.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "1e4b2d12f7db5c05bc07de91a576bfadd96af5a8",
+  "sha256": "6325f9878f7d4cec090de1e84d3b866e5795ad60d34bab944ce5039970ff208f",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "analytics"
+  ]
+}

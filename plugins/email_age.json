@@ -1,0 +1,20 @@
+{
+  "name": "email_age",
+  "title": "Email Age",
+  "description": "Shows the date of the email you're viewing in the status bar.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "e93adbaeddb8a3fe20b22bf390726a4497159cdc",
+  "sha256": "fd2c5c2cfb2a6e9b837e18721ac8a3609a07dc80a286d251a9c3f16d0d56f23e",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "UI"
+  ]
+}

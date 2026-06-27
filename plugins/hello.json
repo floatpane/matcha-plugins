@@ -1,0 +1,19 @@
+{
+  "name": "hello",
+  "title": "Hello",
+  "description": "A minimal example plugin that logs lifecycle events.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "667e2f5dbcf3a3c93791997bab15f3d68f5b0f43",
+  "sha256": "4f51faf88e9ffe31aed45d937402330e7424fc001781bb1c642845c24d13e3c1",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "example"
+  ]
+}

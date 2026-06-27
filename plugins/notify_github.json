@@ -1,0 +1,21 @@
+{
+  "name": "notify_github",
+  "title": "Notify GitHub",
+  "description": "Shows a notification when emails from GitHub arrive.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "d271956d83f034837e35550057f750996a3b7e66",
+  "sha256": "c19bd0ffa8c29eed5aec756d42c0c6f3681805512df335bbf1072928a5a4b084",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "notifications",
+    "integrations"
+  ]
+}

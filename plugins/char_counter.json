@@ -1,0 +1,20 @@
+{
+  "name": "char_counter",
+  "title": "Char Counter",
+  "description": "Shows a live character count in the composer help bar.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "a2a5751da913cff7fc5fd69fa68d0b278a034c1d",
+  "sha256": "6336fd5cf425a7cded5d73869c065b9780552542bf7610c3d8611200084da42a",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}

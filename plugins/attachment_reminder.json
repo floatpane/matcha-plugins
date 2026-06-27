@@ -1,0 +1,20 @@
+{
+  "name": "attachment_reminder",
+  "title": "Attachment Reminder",
+  "description": "Warns if your email body mentions an attachment but you might have forgotten to attach it.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "6b6d4a0d2b6212e45fa6ba80f0ec4773b554c5c0",
+  "sha256": "0dcfb355fc7d5f7f7b521130754064a536bea69c55b259855ab820f195e669e8",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}

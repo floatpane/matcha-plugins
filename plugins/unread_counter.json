@@ -1,0 +1,20 @@
+{
+  "name": "unread_counter",
+  "title": "Unread Counter",
+  "description": "Displays unread count in the inbox title bar.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "b06774d282f5901b43c7a945368fd1ed46db9ae6",
+  "sha256": "93e7515a9d196cbe2be8b3261f0c74483a5a436f8671822feee08f0f388c5f85",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "UI"
+  ]
+}

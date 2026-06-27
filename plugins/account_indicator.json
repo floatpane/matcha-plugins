@@ -1,0 +1,20 @@
+{
+  "name": "account_indicator",
+  "title": "Account Indicator",
+  "description": "Shows which account received the email you're currently viewing.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "4606376e39a0cf57aa567edd8f911bcf21e03f9f",
+  "sha256": "34bd40849a5854f3c28007d6972d2448503b796ed59c60d16d915f4ddda19b7c",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "UI"
+  ]
+}

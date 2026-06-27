@@ -1,0 +1,20 @@
+{
+  "name": "spam_detector",
+  "title": "Spam Detector",
+  "description": "Flags incoming emails that match common spam patterns.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "f944c750ce8e58cabcb60453d3f6f573df89beac",
+  "sha256": "db58180ed7ae2549e0835eab613510cedbb08efd130d0b035033c552a0d4a600",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "security",
+    "notifications"
+  ]
+}

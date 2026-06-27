@@ -1,0 +1,20 @@
+{
+  "name": "quick_label",
+  "title": "Quick Label",
+  "description": "Demonstrates custom keyboard shortcuts with matcha.bind_key(). Press ctrl+i in the inbox to show the selected email's subject.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "edafc1f6f21a177a41685f8d4d528cf8c710d3f7",
+  "sha256": "c9bdc21e2d48fe006142d7739cc8b89b7812ac5a749ea167463b857a34091e47",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "keyboard"
+  ]
+}

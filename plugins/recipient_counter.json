@@ -1,0 +1,20 @@
+{
+  "name": "recipient_counter",
+  "title": "Recipient Counter",
+  "description": "Shows the number of recipients in the composer status bar.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "efc7cb8c8b971a5d1f81e0e1ee78a7bcb68fb14e",
+  "sha256": "32b4ee8c2b5c243b2e03c9ca7e5defcd43c31ee7b7e562683bbc6c41f4e9bd37",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}

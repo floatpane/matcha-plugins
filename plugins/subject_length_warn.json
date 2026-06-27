@@ -1,0 +1,20 @@
+{
+  "name": "subject_length_warn",
+  "title": "Subject Length Warn",
+  "description": "Warns when your subject line is getting too long.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "38f8298dc47d5dc85979db455278dcc084e0ef0c",
+  "sha256": "e3deaf47be8e2130f2617aaa626e95885cdca02896a3cd9ff5646d448d370cc3",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}

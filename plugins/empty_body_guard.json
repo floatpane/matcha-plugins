@@ -1,0 +1,20 @@
+{
+  "name": "empty_body_guard",
+  "title": "Empty Body Guard",
+  "description": "Warns before sending an email with an empty body.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "6d9d3b1c38630ba26cd4be688826b5f46c7d6f46",
+  "sha256": "8217763922a4ec058a65ae59ae8906bb3b870407bef05620c5fe6e8253b4f901",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}

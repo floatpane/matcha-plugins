@@ -1,0 +1,20 @@
+{
+  "name": "domain_filter",
+  "title": "Domain Filter",
+  "description": "Highlights emails from specific domains with a notification.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "51b210daabcd68cc838a9b83f1bf711a75a01c07",
+  "sha256": "3be2a16975d726a1e273763359fb3e477d3dfca91cfcb79989d655b4046fd686",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "notifications"
+  ]
+}

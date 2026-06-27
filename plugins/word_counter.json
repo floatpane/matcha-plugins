@@ -1,0 +1,20 @@
+{
+  "name": "word_counter",
+  "title": "Word Counter",
+  "description": "Shows a live word count in the composer help bar.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "file_sha": "5bcbefcffc605fbd2af9f3441490cce9eef27900",
+  "sha256": "d444fe441469ea7f745e2a9afb6518a7dd3a1d359d467c7c8a4cc9440a961b2c",
+  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "tags": [
+    "productivity",
+    "compose"
+  ]
+}
