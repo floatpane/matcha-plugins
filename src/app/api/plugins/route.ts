@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listPlugins, fetchPluginContent, getPluginMetadata } from '@/lib/github-app';
+import { listPlugins, fetchPluginContent, getPluginMetadata, getPluginsDefaultBranch } from '@/lib/github-app';
 import { Plugin } from '@/lib/types';
 
 const TRUSTED_MAINTAINERS = new Set(['floatpane']);
@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const branch = await getPluginsDefaultBranch();
 
     if (id) {
       // Get specific plugin
@@ -34,8 +35,8 @@ export async function GET(request: Request) {
           display_name: metadata?.author_display_name || metadata?.author || 'Unknown',
           is_verified: metadata?.author ? TRUSTED_MAINTAINERS.has(metadata.author) : false,
         },
-        repository_url: `https://github.com/floatpane/matcha-plugins/tree/main/plugins`,
-        file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/main/plugins/${id}.lua`,
+        repository_url: `https://github.com/floatpane/matcha-plugins/tree/${branch}/plugins`,
+        file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/${branch}/plugins/${id}.lua`,
         sha256: computeSHA256(content),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -76,8 +77,8 @@ export async function GET(request: Request) {
             display_name: metadata?.author_display_name || metadata?.author || 'Unknown',
             is_verified: isTrusted,
           },
-          repository_url: `https://github.com/floatpane/matcha-plugins/tree/main/plugins`,
-          file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/main/plugins/${ghPlugin.name}.lua`,
+          repository_url: `https://github.com/floatpane/matcha-plugins/tree/${branch}/plugins`,
+          file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/${branch}/plugins/${ghPlugin.name}.lua`,
           sha256: computeSHA256(content),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),

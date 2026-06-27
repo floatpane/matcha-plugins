@@ -25,26 +25,28 @@ export async function POST(request: Request) {
 
     const [, owner, repo] = match;
 
-    // Fetch the plugin file from the user's repository
-    const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${plugin_name}.lua`;
-    const response = await fetch(fileUrl);
-    
-    if (!response.ok) {
-      // Try master branch
-      const masterUrl = `https://raw.githubusercontent.com/${owner}/${repo}/master/${plugin_name}.lua`;
-      const masterResponse = await fetch(masterUrl);
-      
-      if (!masterResponse.ok) {
-        return NextResponse.json(
-          { error: `Plugin file ${plugin_name}.lua not found in repository` },
-          { status: 404 }
-        );
-      }
-      
-      var content = await masterResponse.text();
-    } else {
-      var content = await response.text();
+    // Look up the repository's default branch dynamically
+    const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    if (!repoResponse.ok) {
+      return NextResponse.json(
+        { error: 'Repository not found. Please check the URL.' },
+        { status: 404 }
+      );
     }
+    const repoData = await repoResponse.json();
+    const defaultBranch = repoData.default_branch || 'main';
+
+    // Fetch the plugin file from the user's repository on its default branch
+    const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${plugin_name}.lua`;
+    const fileResponse = await fetch(fileUrl);
+
+    if (!fileResponse.ok) {
+      return NextResponse.json(
+        { error: `Plugin file ${plugin_name}.lua not found in repository (branch: ${defaultBranch})` },
+        { status: 404 }
+      );
+    }
+    const content = await fileResponse.text();
 
     // Submit to our plugins repository via GitHub App
     const fileName = `${plugin_name}.lua`;

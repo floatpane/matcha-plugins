@@ -3,10 +3,22 @@ import { createAppAuth } from "@octokit/auth-app";
 import { Octokit } from "@octokit/rest";
 
 const APP_ID = process.env.GITHUB_APP_ID;
-const PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n");
+const PRIVATE_KEY = normalizePem(process.env.GITHUB_APP_PRIVATE_KEY);
 const INSTALLATION_ID = process.env.GITHUB_APP_INSTALLATION_ID;
 const REPO_OWNER = "floatpane";
 const REPO_NAME = "matcha-plugins";
+
+function normalizePem(key?: string): string | undefined {
+  if (!key) return undefined;
+  const replaced = key.replace(/\\n/g, "\n");
+  const base64Match = replaced
+    .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----/g, "")
+    .replace(/-----END [A-Z ]*PRIVATE KEY-----/g, "")
+    .replace(/\s/g, "");
+  if (!base64Match) return replaced.trim() || undefined;
+  const lines = base64Match.match(/.{1,64}/g) || [];
+  return `-----BEGIN RSA PRIVATE KEY-----\n${lines.join("\n")}\n-----END RSA PRIVATE KEY-----`;
+}
 
 // Trusted maintainers who get auto-merged
 const TRUSTED_MAINTAINERS = new Set(["floatpane", "andrinoff"]);
@@ -16,23 +28,52 @@ let octokit: Octokit | null = null;
 async function getOctokit(): Promise<Octokit> {
   if (octokit) return octokit;
 
-  if (!APP_ID || !PRIVATE_KEY || !INSTALLATION_ID) {
+  if (!APP_ID || !PRIVATE_KEY) {
     throw new Error("GitHub App credentials not configured");
   }
 
   const auth = createAppAuth({
     appId: APP_ID,
     privateKey: PRIVATE_KEY,
-    installationId: parseInt(INSTALLATION_ID),
   });
 
-  const installationAuthToken = await auth({ type: "installation" });
+  let installationId: number;
+  if (INSTALLATION_ID && /^\d+$/.test(INSTALLATION_ID)) {
+    installationId = parseInt(INSTALLATION_ID, 10);
+  } else {
+    const appAuth = await auth({ type: "app" });
+    const appOctokit = new Octokit({ auth: appAuth.token });
+    const { data: installation } = await appOctokit.rest.apps.getRepoInstallation({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+    });
+    installationId = installation.id;
+  }
+
+  const installationAuthToken = await auth({ type: "installation", installationId });
 
   octokit = new Octokit({
     auth: installationAuthToken.token,
   });
 
   return octokit;
+}
+
+let defaultBranchCache: string | null = null;
+
+async function getDefaultBranch(github: Octokit): Promise<string> {
+  if (defaultBranchCache) return defaultBranchCache;
+  const { data: repo } = await github.rest.repos.get({
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+  });
+  defaultBranchCache = repo.default_branch || "main";
+  return defaultBranchCache;
+}
+
+export async function getPluginsDefaultBranch(): Promise<string> {
+  const github = await getOctokit();
+  return getDefaultBranch(github);
 }
 
 export async function submitPlugin(
@@ -44,6 +85,7 @@ export async function submitPlugin(
   try {
     const github = await getOctokit();
     const isTrusted = TRUSTED_MAINTAINERS.has(authorUsername);
+    const branch = await getDefaultBranch(github);
 
     // Check if file already exists
     let existingFile: any = null;
@@ -52,7 +94,7 @@ export async function submitPlugin(
         owner: REPO_OWNER,
         repo: REPO_NAME,
         path: `plugins/${fileName}`,
-        ref: "main",
+        ref: branch,
       });
       existingFile = data;
     } catch (e) {
@@ -60,14 +102,14 @@ export async function submitPlugin(
     }
 
     if (isTrusted) {
-      // Trusted maintainer - direct commit to main
+      // Trusted maintainer - direct commit to default branch
       await github.repos.createOrUpdateFileContents({
         owner: REPO_OWNER,
         repo: REPO_NAME,
         path: `plugins/${fileName}`,
         message: commitMessage,
         content: Buffer.from(content).toString("base64"),
-        branch: "main",
+        branch,
         sha: existingFile?.sha,
       });
 
@@ -79,11 +121,11 @@ export async function submitPlugin(
       // Untrusted - create a PR
       const branchName = `plugin-submission-${fileName}-${Date.now()}`;
 
-      // Create new branch
+      // Create new branch off the default branch
       const { data: ref } = await github.git.getRef({
         owner: REPO_OWNER,
         repo: REPO_NAME,
-        ref: "heads/main",
+        ref: `heads/${branch}`,
       });
 
       await github.git.createRef({
@@ -109,7 +151,7 @@ export async function submitPlugin(
         repo: REPO_NAME,
         title: `Add plugin: ${fileName.replace(".lua", "")}`,
         head: branchName,
-        base: "main",
+        base: branch,
         body: `Plugin submission by @${authorUsername}\n\nThis PR will be reviewed and merged after security verification.`,
       });
 
@@ -138,11 +180,12 @@ export async function fetchPluginContent(
 ): Promise<string | null> {
   try {
     const github = await getOctokit();
+    const branch = await getDefaultBranch(github);
     const { data } = await github.repos.getContent({
       owner: REPO_OWNER,
       repo: REPO_NAME,
       path: `plugins/${pluginName}.lua`,
-      ref: "main",
+      ref: branch,
     });
 
     if ("content" in data) {
@@ -160,11 +203,12 @@ export async function listPlugins(): Promise<
 > {
   try {
     const github = await getOctokit();
+    const branch = await getDefaultBranch(github);
     const { data } = await github.repos.getContent({
       owner: REPO_OWNER,
       repo: REPO_NAME,
       path: "plugins",
-      ref: "main",
+      ref: branch,
     });
 
     if (!Array.isArray(data)) return [];
