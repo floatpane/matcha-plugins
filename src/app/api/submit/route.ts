@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { submitPlugin } from '@/lib/github-app';
+import { submitPlugin, isTrustedMaintainer } from '@/lib/github-app';
+import { PluginSubmissionInput } from '@/lib/types';
+import crypto from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -48,22 +50,37 @@ export async function POST(request: Request) {
     }
     const content = await fileResponse.text();
 
-    // Submit to our plugins repository via GitHub App
-    const fileName = `${plugin_name}.lua`;
-    const commitMessage = `Add plugin: ${plugin_name} by @${author_github_username || owner}`;
-    
-    const result = await submitPlugin(
-      fileName,
-      content,
-      author_github_username || owner,
-      commitMessage
-    );
+    // Get the current HEAD commit SHA of the source repo's default branch
+    const branchResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches/${defaultBranch}`);
+    let sourceSha = 'unknown';
+    if (branchResponse.ok) {
+      const branchData = await branchResponse.json();
+      sourceSha = branchData.commit?.sha || 'unknown';
+    }
+
+    const sha256 = crypto.createHash('sha256').update(content).digest('hex');
+    const author = author_github_username || owner;
+    const trusted = isTrustedMaintainer(author);
+
+    const input: PluginSubmissionInput = {
+      plugin_name,
+      repository_url,
+      author_github_username: author,
+      author_display_name: author_display_name || author,
+      file_content: content,
+      source_branch: defaultBranch,
+      source_sha: sourceSha,
+      sha256,
+    };
+
+    const result = await submitPlugin(input);
 
     return NextResponse.json({
       success: true,
       ...result,
-      message: result.merged 
-        ? 'Plugin submitted and merged successfully' 
+      trusted,
+      message: result.merged
+        ? 'Plugin submitted and merged successfully'
         : `Plugin submitted. PR #${result.pr_number} created for review.`,
     });
   } catch (error) {

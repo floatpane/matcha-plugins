@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { listPlugins, fetchPluginContent, getPluginMetadata, getPluginsDefaultBranch } from '@/lib/github-app';
+import { listPlugins, fetchPluginContent, getPluginMetadata, getPluginsDefaultBranch, isTrustedMaintainer } from '@/lib/github-app';
 import { Plugin } from '@/lib/types';
-
-const TRUSTED_MAINTAINERS = new Set(['floatpane']);
+import crypto from 'crypto';
 
 export async function GET(request: Request) {
   try {
@@ -17,35 +16,10 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
       }
 
-      const metadata = await getPluginMetadata(id);
-      
-      const plugin: Plugin = {
-        id,
-        name: id,
-        title: metadata?.title || formatTitle(id),
-        description: metadata?.description || 'No description',
-        version: metadata?.version || '1.0.0',
-        author: {
-          github_username: metadata?.author || 'unknown',
-          display_name: metadata?.author_display_name || metadata?.author || 'Unknown',
-          is_verified: metadata?.author ? TRUSTED_MAINTAINERS.has(metadata.author) : false,
-        },
-        maintainer: {
-          github_username: metadata?.author || 'unknown',
-          display_name: metadata?.author_display_name || metadata?.author || 'Unknown',
-          is_verified: metadata?.author ? TRUSTED_MAINTAINERS.has(metadata.author) : false,
-        },
-        repository_url: `https://github.com/floatpane/matcha-plugins/tree/${branch}/plugins`,
-        file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/${branch}/plugins/${id}.lua`,
-        sha256: computeSHA256(content),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        downloads: 0,
-        status: 'approved',
-        verification_status: metadata?.author && TRUSTED_MAINTAINERS.has(metadata.author) ? 'clean' : 'unverified',
-        tags: metadata?.tags || [],
-      };
+      const manifest = await getPluginMetadata(id);
+      const isTrusted = manifest ? isTrustedMaintainer(manifest.author.github_username) : false;
 
+      const plugin: Plugin = buildPlugin(id, content, manifest, branch, isTrusted);
       return NextResponse.json(plugin);
     }
 
@@ -58,35 +32,10 @@ export async function GET(request: Request) {
         const content = await fetchPluginContent(ghPlugin.name);
         if (!content) continue;
 
-        const metadata = await getPluginMetadata(ghPlugin.name);
-        const isTrusted = metadata?.author ? TRUSTED_MAINTAINERS.has(metadata.author) : false;
+        const manifest = await getPluginMetadata(ghPlugin.name);
+        const isTrusted = manifest ? isTrustedMaintainer(manifest.author.github_username) : false;
 
-        plugins.push({
-          id: ghPlugin.name,
-          name: ghPlugin.name,
-          title: metadata?.title || formatTitle(ghPlugin.name),
-          description: metadata?.description || 'No description',
-          version: metadata?.version || '1.0.0',
-          author: {
-            github_username: metadata?.author || 'unknown',
-            display_name: metadata?.author_display_name || metadata?.author || 'Unknown',
-            is_verified: isTrusted,
-          },
-          maintainer: {
-            github_username: metadata?.author || 'unknown',
-            display_name: metadata?.author_display_name || metadata?.author || 'Unknown',
-            is_verified: isTrusted,
-          },
-          repository_url: `https://github.com/floatpane/matcha-plugins/tree/${branch}/plugins`,
-          file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/${branch}/plugins/${ghPlugin.name}.lua`,
-          sha256: computeSHA256(content),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          downloads: 0,
-          status: 'approved',
-          verification_status: isTrusted ? 'clean' : 'unverified',
-          tags: metadata?.tags || [],
-        });
+        plugins.push(buildPlugin(ghPlugin.name, content, manifest, branch, isTrusted));
       } catch (error) {
         console.error(`Failed to process plugin ${ghPlugin.name}:`, error);
       }
@@ -99,6 +48,44 @@ export async function GET(request: Request) {
   }
 }
 
+function buildPlugin(
+  id: string,
+  content: string,
+  manifest: Awaited<ReturnType<typeof getPluginMetadata>>,
+  branch: string,
+  isTrusted: boolean,
+): Plugin {
+  const authorUsername = manifest?.author.github_username || 'unknown';
+  const authorDisplay = manifest?.author.display_name || manifest?.author.github_username || 'Unknown';
+
+  return {
+    id,
+    name: id,
+    title: manifest?.title || formatTitle(id),
+    description: manifest?.description || 'No description',
+    version: manifest?.version || '1.0.0',
+    author: {
+      github_username: authorUsername,
+      display_name: authorDisplay,
+      is_verified: isTrusted,
+    },
+    maintainer: {
+      github_username: authorUsername,
+      display_name: authorDisplay,
+      is_verified: isTrusted,
+    },
+    repository_url: manifest?.repository_url || `https://github.com/floatpane/matcha-plugins/tree/${branch}/plugins`,
+    file_url: `https://raw.githubusercontent.com/floatpane/matcha-plugins/${branch}/plugins/${id}.lua`,
+    sha256: manifest?.sha256 || computeSHA256(content),
+    created_at: manifest?.submitted_at || new Date().toISOString(),
+    updated_at: manifest?.submitted_at || new Date().toISOString(),
+    downloads: 0,
+    status: 'approved',
+    verification_status: isTrusted ? 'clean' : 'unverified',
+    tags: manifest?.tags || [],
+  };
+}
+
 function formatTitle(name: string): string {
   return name
     .split('_')
@@ -107,6 +94,5 @@ function formatTitle(name: string): string {
 }
 
 function computeSHA256(content: string): string {
-  const crypto = require('crypto');
   return crypto.createHash('sha256').update(content).digest('hex');
 }
