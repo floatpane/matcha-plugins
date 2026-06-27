@@ -12,6 +12,7 @@ import {
   ArrowSquareOut,
   Tag as TagIcon,
   Star,
+  X,
 } from "@phosphor-icons/react";
 import { Plugin } from "@/lib/types";
 
@@ -207,6 +208,19 @@ export default function Marketplace() {
 function PluginCard({ plugin }: { plugin: Plugin }) {
   const isVerified = plugin.author.is_verified && plugin.maintainer.is_verified;
   const isTrusted = plugin.verification_status === "clean";
+  const [showInstallDialog, setShowInstallDialog] = useState(false);
+
+  const launchInstall = () => {
+    window.location.href = `matcha:install:${plugin.name}`;
+  };
+
+  const handleInstallClick = () => {
+    if (isTrusted && isVerified) {
+      launchInstall();
+    } else {
+      setShowInstallDialog(true);
+    }
+  };
 
   return (
     <div className="group bg-white/[0.03] border border-white/10 rounded-lg p-6 hover:shadow-lg hover:shadow-emerald-900/20 hover:border-emerald-500/30 transition-all duration-200">
@@ -286,9 +300,7 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
       {/* Actions */}
       <div className="flex gap-2">
         <button
-          onClick={() =>
-            (window.location.href = `matcha:install:${plugin.name}`)
-          }
+          onClick={handleInstallClick}
           className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium transition-colors text-sm flex items-center justify-center gap-2"
         >
           <DownloadSimple className="w-4 h-4" />
@@ -314,6 +326,79 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
               Unverified author. Confirmation required before install.
             </span>
           </p>
+        </div>
+      )}
+
+      {/* Install confirmation dialog */}
+      {showInstallDialog && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowInstallDialog(false)}
+        >
+          <div
+            className="bg-[#141414] border border-white/10 rounded-xl p-6 max-w-md mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  <Warning className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white text-lg">Install {plugin.title}?</h3>
+                  <p className="text-sm text-slate-400">This plugin is not verified</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInstallDialog(false)}
+                className="text-slate-500 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-slate-500">Author:</span>
+                <a
+                  href={`https://github.com/${plugin.author.github_username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1"
+                >
+                  <GithubLogo className="w-3.5 h-3.5" />
+                  {plugin.author.display_name}
+                </a>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-slate-500">Verification:</span>
+                <span className="text-amber-400">{plugin.verification_status}</span>
+              </div>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                This plugin has not been verified as safe. Installing unverified plugins
+                may pose security risks. Make sure you trust the author before continuing.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInstallDialog(false)}
+                className="flex-1 px-4 py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 rounded-lg font-medium transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowInstallDialog(false);
+                  launchInstall();
+                }}
+                className="flex-1 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                <DownloadSimple className="w-4 h-4" />
+                Install Anyway
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
