@@ -3,7 +3,7 @@ name: Check Plugin Updates
 on:
   schedule:
     # Every 6 hours
-    - cron: '0 */6 * * *'
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
       - name: Trigger update check
         run: |
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ vars.MARKETPLACE_URL || 'https://matcha-marketplace.vercel.app' }}/api/check-updates" \
+            "${{ vars.MARKETPLACE_URL || 'https://marketplace.matcha.email' }}/api/check-updates" \
             -H "Content-Type: application/json")
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -n -1)
