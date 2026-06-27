@@ -13,6 +13,9 @@ import {
   Tag as TagIcon,
   Star,
   X,
+  Terminal,
+  Check,
+  CopySimple,
 } from "@phosphor-icons/react";
 import { Plugin } from "@/lib/types";
 
@@ -209,17 +212,25 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
   const isVerified = plugin.author.is_verified && plugin.maintainer.is_verified;
   const isTrusted = plugin.verification_status === "clean";
   const [showInstallDialog, setShowInstallDialog] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const launchInstall = () => {
     window.location.href = `matcha:install:${plugin.name}`;
+    // Give the browser a moment to launch the protocol handler.
+    // If we're still here after 1.5s, show the fallback with the
+    // copyable command.
+    setTimeout(() => setShowFallback(true), 1500);
   };
 
   const handleInstallClick = () => {
-    if (isTrusted && isVerified) {
-      launchInstall();
-    } else {
-      setShowInstallDialog(true);
-    }
+    setShowInstallDialog(true);
+  };
+
+  const copyCommand = () => {
+    navigator.clipboard.writeText(`matcha install ${plugin.name}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -332,25 +343,33 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
       {/* Install confirmation dialog */}
       {showInstallDialog && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => setShowInstallDialog(false)}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => { setShowInstallDialog(false); setShowFallback(false); }}
         >
           <div
-            className="bg-[#141414] border border-white/10 rounded-xl p-6 max-w-md mx-4 shadow-2xl"
+            className="bg-[#141414] border border-white/10 rounded-xl p-6 max-w-md w-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                  <Warning className="w-5 h-5 text-amber-400" />
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  isTrusted && isVerified ? "bg-emerald-500/10" : "bg-amber-500/10"
+                }`}>
+                  {isTrusted && isVerified ? (
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  ) : (
+                    <Warning className="w-5 h-5 text-amber-400" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-semibold text-white text-lg">Install {plugin.title}?</h3>
-                  <p className="text-sm text-slate-400">This plugin is not verified</p>
+                  <p className="text-sm text-slate-400">
+                    {isTrusted && isVerified ? "Verified plugin" : "This plugin is not verified"}
+                  </p>
                 </div>
               </div>
               <button
-                onClick={() => setShowInstallDialog(false)}
+                onClick={() => { setShowInstallDialog(false); setShowFallback(false); }}
                 className="text-slate-500 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -372,30 +391,64 @@ function PluginCard({ plugin }: { plugin: Plugin }) {
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-slate-500">Verification:</span>
-                <span className="text-amber-400">{plugin.verification_status}</span>
+                <span className={isTrusted ? "text-emerald-400" : "text-amber-400"}>
+                  {plugin.verification_status}
+                </span>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                This plugin has not been verified as safe. Installing unverified plugins
-                may pose security risks. Make sure you trust the author before continuing.
-              </p>
+              {!(isTrusted && isVerified) && (
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  This plugin has not been verified as safe. Installing unverified plugins
+                  may pose security risks. Make sure you trust the author before continuing.
+                </p>
+              )}
             </div>
+
+            {/* Fallback: shown if the protocol handler didn't launch */}
+            {showFallback && (
+              <div className="mb-6 p-4 bg-white/[0.03] border border-white/10 rounded-lg">
+                <p className="text-sm text-slate-400 mb-3">
+                  If matcha didn&apos;t open automatically, run this in your terminal:
+                </p>
+                <div className="flex items-center gap-2 bg-black/40 rounded-lg p-3 border border-white/5">
+                  <Terminal className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                  <code className="flex-1 text-sm text-emerald-400 font-mono">
+                    matcha install {plugin.name}
+                  </code>
+                  <button
+                    onClick={copyCommand}
+                    className="text-slate-400 hover:text-white transition-colors flex-shrink-0"
+                    title="Copy command"
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <CopySimple className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <button
-                onClick={() => setShowInstallDialog(false)}
+                onClick={() => { setShowInstallDialog(false); setShowFallback(false); }}
                 className="flex-1 px-4 py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 rounded-lg font-medium transition-colors text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
-                  setShowInstallDialog(false);
-                  launchInstall();
+                  if (!showFallback) {
+                    launchInstall();
+                  } else {
+                    setShowInstallDialog(false);
+                    setShowFallback(false);
+                  }
                 }}
                 className="flex-1 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
               >
                 <DownloadSimple className="w-4 h-4" />
-                Install Anyway
+                {showFallback ? "Done" : isTrusted && isVerified ? "Install" : "Install Anyway"}
               </button>
             </div>
           </div>
