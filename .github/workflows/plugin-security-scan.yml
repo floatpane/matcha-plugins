@@ -3,10 +3,10 @@ name: Plugin Security Scan
 on:
   pull_request:
     paths:
-      - 'plugins/**/*.lua'
+      - 'plugins/**/*.json'
   push:
     paths:
-      - 'plugins/**/*.lua'
+      - 'plugins/**/*.json'
 
 jobs:
   security-scan:
@@ -18,12 +18,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run security scan
+      - name: Run security scan on changed manifests
         id: scan
         run: |
           node scripts/scan-plugin.js ${{ github.event.pull_request.number || '' }}
@@ -35,40 +32,41 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const scanResult = JSON.parse(process.env.SCAN_RESULT || '{}');
-            
-            let comment = '## 🔍 Security Scan Results\n\n';
-            
-            if (scanResult.status === 'clean') {
-              comment += '✅ **Status**: Clean - No issues detected\n\n';
-              comment += 'This plugin has passed automated security checks and can be merged.';
-            } else if (scanResult.status === 'warning') {
-              comment += '⚠️ **Status**: Warnings detected\n\n';
-              comment += '**Issues found:**\n';
-              scanResult.issues.forEach(issue => {
-                comment += `- ${issue}\n`;
-              });
-              comment += '\n📋 This requires manual review before merging.';
-            } else {
-              comment += '🚨 **Status**: Suspicious patterns detected\n\n';
-              comment += '**Critical issues:**\n';
-              scanResult.issues.forEach(issue => {
-                comment += `- ${issue}\n`;
-              });
-              comment += '\n❌ This plugin cannot be merged without thorough manual review.';
+            const fs = require('fs');
+            let scanResults = [];
+            try {
+              scanResults = JSON.parse(fs.readFileSync('/tmp/scan-results.json', 'utf8'));
+            } catch (e) {
+              console.log('No scan results file found');
+              return;
             }
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
 
-      - name: Auto-merge if clean and trusted
-        if: steps.scan.outputs.is_clean == 'true' && steps.scan.outputs.is_trusted == 'true'
-        uses: pascalgn/automerge-action@v0.15.6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_LABELS: 'auto-merge'
-          MERGE_METHOD: 'squash'
+            for (const result of scanResults) {
+              let comment = `## 🔍 Security Scan: ${result.plugin}\n\n`;
+
+              if (result.status === 'safe') {
+                comment += '✅ **Status**: Clean - No issues detected\n\n';
+                comment += 'This plugin has passed automated security checks.';
+              } else if (result.status === 'warning') {
+                comment += '⚠️ **Status**: Warnings detected\n\n';
+                comment += '**Issues found:**\n';
+                result.issues.forEach(issue => {
+                  comment += `- ${issue}\n`;
+                });
+                comment += '\n📋 This requires manual review before merging.';
+              } else {
+                comment += '🚨 **Status**: Suspicious patterns detected\n\n';
+                comment += '**Critical issues:**\n';
+                result.issues.forEach(issue => {
+                  comment += `- ${issue}\n`;
+                });
+                comment += '\n❌ This plugin cannot be merged without thorough manual review.';
+              }
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }

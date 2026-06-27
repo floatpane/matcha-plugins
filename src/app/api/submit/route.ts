@@ -6,7 +6,16 @@ import crypto from 'crypto';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { repository_url, plugin_name, author_github_username, author_display_name } = body;
+    const {
+      repository_url,
+      plugin_name,
+      title,
+      description,
+      version,
+      author_github_username,
+      author_display_name,
+      tags,
+    } = body;
 
     // Validate required fields
     if (!repository_url || !plugin_name) {
@@ -58,19 +67,34 @@ export async function POST(request: Request) {
       sourceSha = branchData.commit?.sha || 'unknown';
     }
 
+    // Get the git blob SHA of the .lua file (for tamper detection)
+    const contentResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${plugin_name}.lua?ref=${defaultBranch}`,
+    );
+    let fileSha = 'unknown';
+    if (contentResponse.ok) {
+      const contentData = await contentResponse.json();
+      fileSha = contentData.sha || 'unknown';
+    }
+
     const sha256 = crypto.createHash('sha256').update(content).digest('hex');
     const author = author_github_username || owner;
     const trusted = isTrustedMaintainer(author);
 
     const input: PluginSubmissionInput = {
       plugin_name,
+      title: title || plugin_name,
+      description: description || '',
+      version: version || '1.0.0',
       repository_url,
       author_github_username: author,
       author_display_name: author_display_name || author,
       file_content: content,
+      file_sha: fileSha,
       source_branch: defaultBranch,
       source_sha: sourceSha,
       sha256,
+      tags: tags || [],
     };
 
     const result = await submitPlugin(input);

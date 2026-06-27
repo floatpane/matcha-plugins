@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-// Security scanner for Lua plugins
+// Security scanner for Lua plugins.
+// Reads manifest JSON files from the matcha-plugins repo, fetches the
+// actual .lua source from the author's repository, and scans it.
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -17,8 +20,6 @@ const DANGEROUS_PATTERNS = [
   { pattern: /require\s*\(\s*["']socket["']/i, message: 'Network access via socket', severity: 'warning' },
 ];
 
-const TRUSTED_MAINTAINERS = ['floatpane'];
-
 function scanPlugin(content) {
   const issues = [];
   let maxSeverity = 'safe';
@@ -26,8 +27,11 @@ function scanPlugin(content) {
   for (const { pattern, message, severity } of DANGEROUS_PATTERNS) {
     if (pattern.test(content)) {
       issues.push(message);
-      if (severity === 'danger') maxSeverity = 'danger';
-      else if (maxSeverity !== 'danger') maxSeverity = 'warning';
+      if (severity === 'danger') {
+        maxSeverity = 'danger';
+      } else if (maxSeverity !== 'danger') {
+        maxSeverity = 'warning';
+      }
     }
   }
 
@@ -39,91 +43,133 @@ function scanPlugin(content) {
 }
 
 function computeSHA256(content) {
-  return crypto.createHash('sha256').update(content).toString('hex');
+  return crypto.createHash('sha256').update(content).digest('hex');
+}
+
+async function fetchJson(url, token) {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'matcha-plugin-scanner',
+    },
+  });
+  if (!response.ok) return null;
+  return response.json();
 }
 
 async function main() {
   const prNumber = process.argv[2];
-  
-  // Get changed files from PR or recent commit
   const githubToken = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPOSITORY || 'floatpane/matcha-plugins';
   const [owner, repoName] = repo.split('/');
 
-  let changedFiles = [];
-  
+  let changedManifests = [];
+
   if (prNumber) {
-    // Get files from PR
-    const response = await fetch(
+    // Get changed .json files from PR
+    const files = await fetchJson(
       `https://api.github.com/repos/${owner}/${repoName}/pulls/${prNumber}/files`,
-      {
-        headers: {
-          'Authorization': `token ${githubToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      }
+      githubToken,
     );
-    const files = await response.json();
-    changedFiles = files.filter(f => f.filename.endsWith('.lua'));
+    if (files) {
+      changedManifests = files
+        .filter(f => f.filename.startsWith('plugins/') && f.filename.endsWith('.json'))
+        .map(f => f.filename);
+    }
   } else {
-    // Get files from recent push
-    const response = await fetch(
+    // Get changed .json files from recent push
+    const commits = await fetchJson(
       `https://api.github.com/repos/${owner}/${repoName}/commits?per_page=1`,
-      {
-        headers: {
-          'Authorization': `token ${githubToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      }
+      githubToken,
     );
-    const commits = await response.json();
-    if (commits.length > 0) {
-      const commitResponse = await fetch(commits[0].url, {
-        headers: {
-          'Authorization': `token ${githubToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      });
-      const commit = await commitResponse.json();
-      changedFiles = commit.files?.filter(f => f.filename.endsWith('.lua')) || [];
+    if (commits && commits.length > 0) {
+      const commit = await fetchJson(commits[0].url, githubToken);
+      if (commit && commit.files) {
+        changedManifests = commit.files
+          .filter(f => f.filename.startsWith('plugins/') && f.filename.endsWith('.json'))
+          .map(f => f.filename);
+      }
     }
   }
 
-  const results = [];
-  
-  for (const file of changedFiles) {
-    const contentResponse = await fetch(file.raw_url);
-    const content = await contentResponse.text();
-    
-    const scanResult = scanPlugin(content);
-    const sha256 = computeSHA256(content);
-    
-    // Extract author from commit
-    const authorMatch = file.patch?.match(/\+\+.*@author\s+(.+)/i);
-    const author = authorMatch ? authorMatch[1].trim() : 'unknown';
-    const isTrusted = TRUSTED_MAINTAINERS.includes(author);
-    
-    results.push({
-      file: file.filename,
-      ...scanResult,
-      sha256,
-      author,
-      isTrusted,
-    });
-    
-    console.log(`Scanned ${file.filename}: ${scanResult.status}`);
+  if (changedManifests.length === 0) {
+    console.log('No manifest files changed.');
+    return;
   }
 
-  // Set outputs for GitHub Actions
-  if (results.length > 0) {
-    const result = results[0];
-    console.log(`::set-output name=is_clean::${result.isClean}`);
-    console.log(`::set-output name=is_trusted::${result.isTrusted}`);
-    
-    // Save full results for PR comment
-    fs.writeFileSync('/tmp/scan-results.json', JSON.stringify(result));
-    console.log(`::set-env name=SCAN_RESULT::${JSON.stringify(result)}`);
+  const results = [];
+
+  for (const manifestPath of changedManifests) {
+    // Read the manifest from the local checkout
+    let manifest;
+    try {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    } catch (e) {
+      console.log(`Could not read manifest ${manifestPath}: ${e.message}`);
+      continue;
+    }
+
+    const match = manifest.repository_url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) {
+      console.log(`Invalid repository_url in ${manifestPath}: ${manifest.repository_url}`);
+      continue;
+    }
+
+    const [, srcOwner, srcRepo] = match;
+    const branch = manifest.source_branch || 'main';
+    const pluginName = manifest.name || path.basename(manifestPath, '.json');
+
+    // Fetch the .lua content from the author's source repo
+    const fileUrl = `https://raw.githubusercontent.com/${srcOwner}/${srcRepo}/${branch}/${pluginName}.lua`;
+    const contentResponse = await fetch(fileUrl);
+
+    if (!contentResponse.ok) {
+      console.log(`Could not fetch ${pluginName}.lua from ${srcOwner}/${srcRepo} (branch: ${branch})`);
+      results.push({
+        plugin: pluginName,
+        file: manifestPath,
+        status: 'danger',
+        issues: [`Source file not accessible: ${fileUrl}`],
+        isClean: false,
+        sha256: 'unknown',
+        author: manifest.author?.github_username || 'unknown',
+      });
+      continue;
+    }
+
+    const content = await contentResponse.text();
+    const scanResult = scanPlugin(content);
+    const sha256 = computeSHA256(content);
+
+    // Verify SHA-256 matches the manifest
+    const shaMatches = sha256 === manifest.sha256;
+
+    const issues = [...scanResult.issues];
+    if (!shaMatches) {
+      issues.push(`SHA-256 mismatch: manifest says ${manifest.sha256.slice(0, 16)}... but source is ${sha256.slice(0, 16)}...`);
+    }
+
+    results.push({
+      plugin: pluginName,
+      file: manifestPath,
+      status: !shaMatches ? 'danger' : scanResult.status,
+      issues,
+      isClean: shaMatches && scanResult.isClean,
+      sha256,
+      author: manifest.author?.github_username || 'unknown',
+    });
+
+    console.log(`Scanned ${pluginName}: ${scanResult.status}${!shaMatches ? ' (SHA MISMATCH!)' : ''}`);
   }
+
+  // Save results for PR comment
+  fs.writeFileSync('/tmp/scan-results.json', JSON.stringify(results, null, 2));
+
+  // Set outputs for GitHub Actions
+  const allClean = results.every(r => r.isClean);
+  console.log(`::set-output name=is_clean::${allClean}`);
+  console.log(`::set-output name=result_count::${results.length}`);
 }
 
 main().catch(console.error);

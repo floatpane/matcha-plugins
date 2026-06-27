@@ -11,12 +11,16 @@ export default function SubmitPlugin() {
   const [formData, setFormData] = useState({
     repository_url: '',
     plugin_name: '',
+    title: '',
+    description: '',
+    version: '1.0.0',
+    tags: '',
     author_display_name: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [repoInfo, setRepoInfo] = useState<any>(null);
+  const [repoInfo, setRepoInfo] = useState<{ owner?: { login?: string; avatar_url?: string }; full_name?: string; description?: string; luaFiles?: Array<{ name: string; type: string }> } | null>(null);
 
   const handleRepoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +50,7 @@ export default function SubmitPlugin() {
       if (filesResponse.ok) {
         const files = await filesResponse.json();
         const luaFiles = Array.isArray(files) 
-          ? files.filter((f: any) => f.name.endsWith('.lua') && f.type === 'file')
+          ? files.filter((f: { name: string; type: string }) => f.name.endsWith('.lua') && f.type === 'file')
           : [];
         
         if (luaFiles.length === 0) {
@@ -85,6 +89,10 @@ export default function SubmitPlugin() {
         },
         body: JSON.stringify({
           plugin_name: formData.plugin_name,
+          title: formData.title,
+          description: formData.description,
+          version: formData.version,
+          tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
           author_github_username: repoInfo?.owner?.login || 'unknown',
           author_display_name: formData.author_display_name || repoInfo?.owner?.login || 'Unknown',
           repository_url: formData.repository_url,
@@ -160,7 +168,7 @@ export default function SubmitPlugin() {
               <h3 className="font-semibold text-emerald-300 mb-1">How it works</h3>
               <ul className="text-sm text-emerald-400/80 space-y-1">
                 <li>• Provide your GitHub repository URL</li>
-                <li>• We'll automatically detect your plugin file(s)</li>
+                <li>• We&apos;ll automatically detect your plugin file(s)</li>
                 <li>• Automated security scanning and verification</li>
                 <li>• Manual review before publishing</li>
               </ul>
@@ -246,7 +254,7 @@ export default function SubmitPlugin() {
                     onChange={(e) => setFormData({ ...formData, plugin_name: e.target.value })}
                     className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
                   >
-                    {repoInfo.luaFiles.map((file: any) => (
+                    {repoInfo.luaFiles.map((file) => (
                       <option key={file.name} value={file.name.replace('.lua', '')} className="bg-[#1a1a1a]">
                         {file.name}
                       </option>
@@ -255,30 +263,87 @@ export default function SubmitPlugin() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Plugin File Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.plugin_name}
+                      onChange={(e) => setFormData({ ...formData, plugin_name: e.target.value })}
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Display Name (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.author_display_name}
+                      onChange={(e) => setFormData({ ...formData, author_display_name: e.target.value })}
+                      placeholder={repoInfo.owner?.login || 'Your name'}
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white placeholder:text-slate-500"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Plugin Name
+                    Plugin Title *
                   </label>
                   <input
                     type="text"
-                    value={formData.plugin_name}
-                    onChange={(e) => setFormData({ ...formData, plugin_name: e.target.value })}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="My Awesome Plugin"
+                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white placeholder:text-slate-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Display Name (optional)
+                    Description
                   </label>
-                  <input
-                    type="text"
-                    value={formData.author_display_name}
-                    onChange={(e) => setFormData({ ...formData, author_display_name: e.target.value })}
-                    placeholder={repoInfo.owner?.login || 'Your name'}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white placeholder:text-slate-500"
+                  <textarea
+                    rows={3}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="A short description of what your plugin does"
+                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white placeholder:text-slate-500 resize-none"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Version
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.version}
+                      onChange={(e) => setFormData({ ...formData, version: e.target.value })}
+                      placeholder="1.0.0"
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white placeholder:text-slate-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Tags (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.tags}
+                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                      placeholder="productivity, theme, utils"
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white placeholder:text-slate-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

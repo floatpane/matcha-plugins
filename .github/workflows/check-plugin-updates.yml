@@ -1,0 +1,29 @@
+name: Check Plugin Updates
+
+on:
+  schedule:
+    # Every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger update check
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ vars.MARKETPLACE_URL || 'https://matcha-marketplace.vercel.app' }}/api/check-updates" \
+            -H "Content-Type: application/json")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "Response code: $HTTP_CODE"
+          echo "Response body: $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::warning::Update check returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "$BODY" | jq '.' || true

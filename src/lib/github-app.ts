@@ -1,7 +1,9 @@
 // GitHub App integration for automated plugin submissions
 import { createAppAuth } from "@octokit/auth-app";
 import { Octokit } from "@octokit/rest";
+import crypto from "crypto";
 import { PluginManifest, PluginSubmissionInput } from "./types";
+import { scanPlugin } from "./scan";
 
 const APP_ID = process.env.GITHUB_APP_ID;
 const PRIVATE_KEY = normalizePem(process.env.GITHUB_APP_PRIVATE_KEY);
@@ -120,16 +122,11 @@ async function commitFile(
 }
 
 function buildManifest(input: PluginSubmissionInput): PluginManifest {
-  const title = input.plugin_name
-    .split("_")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-
   return {
     name: input.plugin_name,
-    title,
-    description: "",
-    version: "1.0.0",
+    title: input.title || input.plugin_name,
+    description: input.description || "",
+    version: input.version || "1.0.0",
     author: {
       github_username: input.author_github_username,
       display_name: input.author_display_name,
@@ -137,10 +134,17 @@ function buildManifest(input: PluginSubmissionInput): PluginManifest {
     repository_url: input.repository_url,
     source_branch: input.source_branch,
     source_sha: input.source_sha,
+    file_sha: input.file_sha,
     sha256: input.sha256,
     submitted_at: new Date().toISOString(),
-    tags: [],
+    tags: input.tags || [],
   };
+}
+
+function parseRepoUrl(url: string): { owner: string; repo: string } | null {
+  const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+  if (!match) return null;
+  return { owner: match[1], repo: match[2] };
 }
 
 export async function submitPlugin(
@@ -150,7 +154,6 @@ export async function submitPlugin(
   const baseBranch = await getDefaultBranch(github);
   const isTrusted = TRUSTED_MAINTAINERS.has(input.author_github_username);
 
-  const luaFileName = `${input.plugin_name}.lua`;
   const manifestFileName = `${input.plugin_name}.json`;
   const branchName = `plugin-submission-${input.plugin_name}-${Date.now()}`;
   const manifest = buildManifest(input);
@@ -169,24 +172,13 @@ export async function submitPlugin(
     sha: ref.object.sha,
   });
 
-  // Commit the .lua file
-  const luaSha = await getFileSha(github, `plugins/${luaFileName}`, branchName);
-  await commitFile(
-    github,
-    `plugins/${luaFileName}`,
-    input.file_content,
-    `Add plugin: ${input.plugin_name}.lua`,
-    branchName,
-    luaSha,
-  );
-
-  // Commit the manifest .json file
+  // Commit only the manifest JSON — the .lua file stays in the author's repo
   const manifestSha = await getFileSha(github, `plugins/${manifestFileName}`, branchName);
   await commitFile(
     github,
     `plugins/${manifestFileName}`,
     JSON.stringify(manifest, null, 2) + "\n",
-    `Add manifest: ${input.plugin_name}.json`,
+    `Add plugin manifest: ${input.plugin_name}.json`,
     branchName,
     manifestSha,
   );
@@ -201,9 +193,13 @@ export async function submitPlugin(
     body: [
       `Plugin submission by @${input.author_github_username}`,
       "",
+      `**Title:** ${manifest.title}`,
+      `**Description:** ${manifest.description || "_(none)_"} `,
+      `**Version:** ${manifest.version}`,
       `**Source:** ${input.repository_url}`,
       `**Branch:** ${input.source_branch}`,
       `**Commit SHA:** ${input.source_sha}`,
+      `**File blob SHA:** ${input.file_sha}`,
       `**SHA-256:** ${input.sha256}`,
       "",
       "This PR will be reviewed and merged after security verification.",
@@ -252,27 +248,24 @@ export async function submitPlugin(
   };
 }
 
+/**
+ * Fetch the current content of a plugin's .lua file from the author's
+ * source repository (not from the plugins repo — we don't store the file).
+ */
 export async function fetchPluginContent(
   pluginName: string,
 ): Promise<string | null> {
-  try {
-    const github = await getOctokit();
-    const branch = await getDefaultBranch(github);
-    const { data } = await github.repos.getContent({
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
-      path: `plugins/${pluginName}.lua`,
-      ref: branch,
-    });
+  const manifest = await fetchPluginManifest(pluginName);
+  if (!manifest) return null;
 
-    if ("content" in data) {
-      return Buffer.from(data.content, "base64").toString("utf-8");
-    }
-    return null;
-  } catch (error) {
-    console.error("Failed to fetch plugin:", error);
-    return null;
-  }
+  const parsed = parseRepoUrl(manifest.repository_url);
+  if (!parsed) return null;
+
+  const fileUrl = `https://raw.githubusercontent.com/${parsed.owner}/${parsed.repo}/${manifest.source_branch}/${pluginName}.lua`;
+  const response = await fetch(fileUrl);
+
+  if (!response.ok) return null;
+  return response.text();
 }
 
 export async function fetchPluginManifest(
@@ -315,9 +308,9 @@ export async function listPlugins(): Promise<
     if (!Array.isArray(data)) return [];
 
     return data
-      .filter((item) => item.name.endsWith(".lua") && item.type === "file")
+      .filter((item) => item.name.endsWith(".json") && item.type === "file")
       .map((item) => ({
-        name: item.name.replace(".lua", ""),
+        name: item.name.replace(".json", ""),
         sha: item.sha,
         size: item.size,
       }));
@@ -335,10 +328,12 @@ export async function getPluginMetadata(pluginName: string): Promise<PluginManif
  * SHA-drift checker.
  *
  * For every published plugin, compares the source_sha recorded in the manifest
- * against the current HEAD commit of the user's source repository. If they
- * differ, fetches the current file content, recomputes SHA-256, and:
- *   - if SHA-256 is unchanged  -> no-op (commit moved but content identical)
- *   - if SHA-256 changed       -> opens an update PR (or auto-merges if trusted)
+ * against the current HEAD commit of the author's source repository. If they
+ * differ, fetches the current file content and:
+ *   - if SHA-256 is unchanged  -> updates only the source_sha (no content change)
+ *   - if SHA-256 changed       -> runs security scan:
+ *       - clean   -> auto-merge if trusted, otherwise open PR
+ *       - suspicious/warning -> always open PR (never auto-merge)
  *
  * Also detects deleted source repos / files.
  */
@@ -348,6 +343,44 @@ export interface DriftResult {
   pr_number?: number;
   pr_url?: string;
   message: string;
+}
+
+async function getSourceHeadSha(
+  github: Octokit,
+  owner: string,
+  repo: string,
+): Promise<string | null> {
+  try {
+    const { data: repoData } = await github.rest.repos.get({ owner, repo });
+    const branchName = repoData.default_branch;
+    if (!branchName) return null;
+    const { data: branchData } = await github.repos.getBranch({
+      owner,
+      repo,
+      branch: branchName,
+    });
+    return branchData.commit.sha;
+  } catch {
+    return null;
+  }
+}
+
+async function getSourceFileSha(
+  owner: string,
+  repo: string,
+  branch: string,
+  fileName: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${fileName}.lua?ref=${branch}`,
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.sha ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function checkPluginUpdates(): Promise<DriftResult[]> {
@@ -367,8 +400,8 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       continue;
     }
 
-    const match = manifest.repository_url.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (!match) {
+    const parsed = parseRepoUrl(manifest.repository_url);
+    if (!parsed) {
       results.push({
         plugin: p.name,
         status: "source_missing",
@@ -376,16 +409,12 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       });
       continue;
     }
-    const [, owner, repo] = match;
+    const { owner, repo } = parsed;
+    const branch = manifest.source_branch || "main";
 
     // Fetch the current HEAD commit SHA of the source repo
-    let headSha: string;
-    try {
-      const { data: repoData } = await github.rest.repos.get({ owner, repo });
-      headSha = repoData.default_branch
-        ? (await github.repos.getBranch({ owner, repo, branch: repoData.default_branch })).data.commit.sha
-        : repoData.pushed_at;
-    } catch {
+    const headSha = await getSourceHeadSha(github, owner, repo);
+    if (!headSha) {
       results.push({
         plugin: p.name,
         status: "source_missing",
@@ -403,8 +432,7 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       continue;
     }
 
-    // SHA changed — fetch current file content and recompute SHA-256
-    const branch = manifest.source_branch || "main";
+    // Commit changed — fetch current file content and recompute SHA-256
     const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${p.name}.lua`;
     const fileResponse = await fetch(fileUrl);
 
@@ -418,21 +446,31 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
     }
 
     const newContent = await fileResponse.text();
-    const crypto = await import("crypto");
     const newSha256 = crypto.createHash("sha256").update(newContent).digest("hex");
 
+    // Content unchanged despite commit drift — just update source_sha
     if (newSha256 === manifest.sha256) {
+      const newFileSha = await getSourceFileSha(owner, repo, branch, p.name);
+      await updateManifestOnly(github, p.name, manifest, baseBranch, {
+        source_sha: headSha,
+        file_sha: newFileSha || manifest.file_sha,
+      });
       results.push({
         plugin: p.name,
-        status: "up_to_date",
-        message: "Content unchanged despite commit drift",
+        status: "updated",
+        message: "Source SHA updated (content unchanged)",
       });
       continue;
     }
 
-    // Content changed — open an update PR
+    // Content changed — run security scan before deciding whether to auto-merge
+    const scanResult = scanPlugin(newContent);
     const isTrusted = TRUSTED_MAINTAINERS.has(manifest.author.github_username);
+    const canAutoMerge = isTrusted && scanResult.isClean;
+
+    const newFileSha = await getSourceFileSha(owner, repo, branch, p.name);
     const branchName = `plugin-update-${p.name}-${Date.now()}`;
+    const manifestPath = `plugins/${p.name}.json`;
 
     const { data: baseRef } = await github.git.getRef({
       owner: REPO_OWNER,
@@ -447,22 +485,10 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       sha: baseRef.object.sha,
     });
 
-    const luaPath = `plugins/${p.name}.lua`;
-    const manifestPath = `plugins/${p.name}.json`;
-
-    const existingLuaSha = await getFileSha(github, luaPath, branchName);
-    await commitFile(
-      github,
-      luaPath,
-      newContent,
-      `Update plugin: ${p.name}.lua`,
-      branchName,
-      existingLuaSha,
-    );
-
     const updatedManifest: PluginManifest = {
       ...manifest,
       source_sha: headSha,
+      file_sha: newFileSha || manifest.file_sha,
       sha256: newSha256,
       submitted_at: new Date().toISOString(),
     };
@@ -477,6 +503,13 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       existingManifestSha,
     );
 
+    const scanLabel =
+      scanResult.status === "safe"
+        ? "scan-clean"
+        : scanResult.status === "warning"
+          ? "scan-warning"
+          : "scan-suspicious";
+
     const { data: pr } = await github.pulls.create({
       owner: REPO_OWNER,
       repo: REPO_NAME,
@@ -487,11 +520,18 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
         `Automated update for **${manifest.title}**`,
         "",
         `**Source:** ${manifest.repository_url}`,
-        `**Previous SHA:** ${manifest.source_sha.slice(0, 7)}`,
-        `**New SHA:** ${headSha.slice(0, 7)}`,
+        `**Previous commit:** ${manifest.source_sha.slice(0, 7)}`,
+        `**New commit:** ${headSha.slice(0, 7)}`,
         `**New SHA-256:** ${newSha256}`,
         "",
-        "Detected by automated SHA-drift checker.",
+        `### Security scan: ${scanResult.status}`,
+        scanResult.issues.length > 0
+          ? scanResult.issues.map((i) => `- ${i}`).join("\n")
+          : "No issues detected.",
+        "",
+        canAutoMerge
+          ? "✅ Auto-merging (trusted maintainer, clean scan)"
+          : "📋 Manual review required.",
       ].join("\n"),
     });
 
@@ -499,10 +539,10 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       owner: REPO_OWNER,
       repo: REPO_NAME,
       issue_number: pr.number,
-      labels: ["plugin-update", isTrusted ? "auto-merge" : "needs-review"],
+      labels: ["plugin-update", scanLabel, canAutoMerge ? "auto-merge" : "needs-review"],
     });
 
-    if (isTrusted) {
+    if (canAutoMerge) {
       try {
         await github.pulls.merge({
           owner: REPO_OWNER,
@@ -515,7 +555,7 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
           status: "updated",
           pr_number: pr.number,
           pr_url: pr.html_url,
-          message: "Update auto-merged (trusted maintainer)",
+          message: "Update auto-merged (trusted, clean scan)",
         });
         continue;
       } catch (err) {
@@ -528,9 +568,30 @@ export async function checkPluginUpdates(): Promise<DriftResult[]> {
       status: "drift_detected",
       pr_number: pr.number,
       pr_url: pr.html_url,
-      message: `Update PR #${pr.number} opened for review`,
+      message: `Update PR #${pr.number} opened (scan: ${scanResult.status})`,
     });
   }
 
   return results;
+}
+
+/** Update only the manifest without opening a PR (for content-unchanged drift). */
+async function updateManifestOnly(
+  github: Octokit,
+  pluginName: string,
+  manifest: PluginManifest,
+  baseBranch: string,
+  updates: Partial<Pick<PluginManifest, "source_sha" | "file_sha">>,
+): Promise<void> {
+  const manifestPath = `plugins/${pluginName}.json`;
+  const updated = { ...manifest, ...updates };
+  const existingSha = await getFileSha(github, manifestPath, baseBranch);
+  await commitFile(
+    github,
+    manifestPath,
+    JSON.stringify(updated, null, 2) + "\n",
+    `Update source SHA: ${pluginName}`,
+    baseBranch,
+    existingSha,
+  );
 }
