@@ -9,10 +9,10 @@
   },
   "repository_url": "https://github.com/floatpane/official-matcha-plugins",
   "source_branch": "master",
-  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
-  "file_sha": "6c694ee7f00e6cbf0fcd29e8d5d6945c8a983e5f",
-  "sha256": "5469caec5c5e7e9e63d1b2143bf7076a318af8ac578ad4cc1851fb7d22b1cf53",
-  "submitted_at": "2026-06-27T14:43:14.000Z",
+  "source_sha": "dfd8896fbe7bd30dd5b4b6259644f2ec0f4e2cfe",
+  "file_sha": "f814864c66b18463220818c5ec4746fd452e6181",
+  "sha256": "770d431d472d2e27e79f716a8be953900dd70df6d76e2ad25de1b6eff8f029b8",
+  "submitted_at": "2026-06-28T10:10:27.025Z",
   "tags": [
     "productivity",
     "fun"
