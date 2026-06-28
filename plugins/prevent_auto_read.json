@@ -1,7 +1,7 @@
 {
   "name": "prevent_auto_read",
   "title": "Prevent Auto Read",
-  "description": "Prevents emails from being automatically marked as read when opened. Toggle on/off in Settings \u2192 Plugins.",
+  "description": "Prevents emails from being automatically marked as read when opened. Toggle on/off in Settings → Plugins.",
   "version": "1.0.0",
   "author": {
     "github_username": "floatpane",
@@ -9,7 +9,7 @@
   },
   "repository_url": "https://github.com/floatpane/official-matcha-plugins",
   "source_branch": "master",
-  "source_sha": "f56d614aceb2235285bbee82bd68c35176af25dc",
+  "source_sha": "dfd8896fbe7bd30dd5b4b6259644f2ec0f4e2cfe",
   "file_sha": "32624425c2873ca9651519256f113caaf22b2807",
   "sha256": "7d4412450d21c7a92b781c858710b82ca3b5d57381ce1ea248b71ed08251e6f8",
   "submitted_at": "2026-06-27T14:43:14.000Z",
