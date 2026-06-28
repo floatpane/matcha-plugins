@@ -1,0 +1,20 @@
+{
+  "name": "custom_banner",
+  "title": "Custom banner",
+  "description": "Customize the banner on the start up screen!",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "andrinoff",
+    "display_name": "Drew Smirnoff"
+  },
+  "repository_url": "https://github.com/andrinoff/my-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "0ce8baa6cb49d9e3b9bb24d4f85e1b0b99a84b40",
+  "file_sha": "57da65ba3faedcaf32d4f56dbcf189b21e6f74e8",
+  "sha256": "d5b6d067e6bbca02f921b6f042dafc6fdffe94c67d2a13df607276252d0fb630",
+  "submitted_at": "2026-06-28T10:02:39.834Z",
+  "tags": [
+    "theme",
+    "customization"
+  ]
+}
