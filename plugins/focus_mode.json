@@ -1,0 +1,21 @@
+{
+  "name": "focus_mode",
+  "title": "Focus Mode",
+  "description": "A plugin that combines visibility toggles, text overrides, and custom components to create a \"focus mode\" — hiding the sidebar, relabeling the header, and injecting a motivational quote at the bottom of the screen. Toggled on/off with a single keybinding.",
+  "version": "1.0.0",
+  "author": {
+    "github_username": "floatpane",
+    "display_name": "floatpane"
+  },
+  "repository_url": "https://github.com/floatpane/official-matcha-plugins",
+  "source_branch": "master",
+  "source_sha": "dfd8896fbe7bd30dd5b4b6259644f2ec0f4e2cfe",
+  "file_sha": "c915dc1617869ede0f185b673c202d82a055fd1e",
+  "sha256": "e93a8dd1cc47d9330e67c1ecc22283934120960dffe8b35f179a425e8eb69241",
+  "submitted_at": "2026-06-29T09:38:21.428Z",
+  "tags": [
+    "productivity",
+    "customization",
+    "theme"
+  ]
+}
